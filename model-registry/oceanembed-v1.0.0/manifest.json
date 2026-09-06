@@ -1,0 +1,38 @@
+{
+  "bundle_version": "oceanembed-v1.0.0",
+  "created_at": "2025-01-01T00:00:00Z",
+  "description": "Placeholder model registry manifest. Replace with real values once the training pipeline produces the first bundle.",
+  "members": [
+    "members/member_0.pt",
+    "members/member_1.pt",
+    "members/member_2.pt",
+    "members/member_3.pt",
+    "members/member_4.pt"
+  ],
+  "artifacts": {
+    "scaler": "scaler.json",
+    "channels": "channels.json",
+    "calibration": "calibration.json"
+  },
+  "training": {
+    "data_start": "2020-01-01",
+    "data_end": "2024-12-31",
+    "domain": {
+      "lat_min": 5.0,
+      "lat_max": 30.0,
+      "lon_min": 45.0,
+      "lon_max": 105.0,
+      "resolution_deg": 0.25
+    },
+    "depth_levels": 15,
+    "input_channels": "see channels.json",
+    "target_variables": ["temp", "sal"],
+    "derived_variables": ["d26", "tchp", "mld"],
+    "uncertainty": {
+      "method": "ensemble_spread_with_variance_inflation",
+      "calibration_source": "ARGO matchups",
+      "calibration_artifact": "calibration.json"
+    }
+  },
+  "notes": "PLACEHOLDER — member_*.pt files are not tracked in git. Use Git LFS or a shared volume for the actual weights."
+}

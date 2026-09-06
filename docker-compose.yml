@@ -1,0 +1,65 @@
+# OceanEmbed — docker-compose for local development.
+#
+# Usage:
+#   docker compose up -d           # start all services
+#   docker compose up api frontend # start API + frontend only
+#
+# Services:
+#   db       — PostgreSQL + PostGIS
+#   api      — FastAPI backend (mounts Zarr store :ro)
+#   frontend — Vite React dashboard (proxies /api → api:8000)
+#
+# Volume mount permissions:
+#   - data/published/ is mounted :ro in the API container to enforce
+#     the read-only boundary.  The worker (future) mounts it :rw.
+#   - model-registry/ is :ro in all containers.
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: oceanembed
+      POSTGRES_PASSWORD: oceanembed_dev
+      POSTGRES_DB: oceanembed
+    ports:
+      - "5432:5432"
+    volumes:
+      # Run init.sql on first start to create PostGIS extension + tables.
+      - ./backend/src/modules/ocean/db/init.sql:/docker-entrypoint-initdb.d/01_ocean.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oceanembed"]
+      interval: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://oceanembed:oceanembed_dev@db:5432/oceanembed
+      PUBLISHED_ZARR_ROOT: /data/published
+      ZARR_POINTER_RECHECK_SECONDS: "30"
+      MODEL_REGISTRY_PATH: /model-registry
+      ENVIRONMENT: local
+    volumes:
+      # Read-only mount: the API NEVER writes to published storage.
+      # The inference worker (future service) mounts this :rw.
+      - ./data/published:/data/published:ro
+      - ./model-registry:/model-registry:ro
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3000:80"
+
+volumes:
+  pgdata:
