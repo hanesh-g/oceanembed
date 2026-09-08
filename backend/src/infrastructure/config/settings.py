@@ -231,30 +231,6 @@ class APIDocSettings(BaseSettings):
     API_TAGS_METADATA: str = config("API_TAGS_METADATA", default="[]")
 
 
-class AuthSettings(BaseSettings):
-    """Authentication-related settings."""
-
-    SECRET_KEY: str = config("SECRET_KEY", default="insecure-secret-key-change-this")
-
-    SESSION_TIMEOUT_MINUTES: int = config("SESSION_TIMEOUT_MINUTES", default=30, cast=int)
-    SESSION_CLEANUP_INTERVAL_MINUTES: int = config("SESSION_CLEANUP_INTERVAL_MINUTES", default=15, cast=int)
-    MAX_SESSIONS_PER_USER: int = config("MAX_SESSIONS_PER_USER", default=5, cast=int)
-    SESSION_SECURE_COOKIES: bool = config("SESSION_SECURE_COOKIES", default=True, cast=bool)
-    SESSION_BACKEND: str = config("SESSION_BACKEND", default=SessionBackend.REDIS.value)
-
-    CSRF_ENABLED: bool = config("CSRF_ENABLED", default=True, cast=bool)
-
-    # Number of trusted reverse proxies in front of the app. crudauth resolves the
-    # client IP for login lockout from the last hop of X-Forwarded-For; 0 = the socket
-    # peer (no proxy). Set to 1 behind a single nginx/Caddy, 2 if Cloudflare is also in front.
-    TRUSTED_PROXY_HOPS: int = config("TRUSTED_PROXY_HOPS", default=0, cast=int)
-
-    OAUTH_GOOGLE_CLIENT_ID: str = config("OAUTH_GOOGLE_CLIENT_ID", default="")
-    OAUTH_GOOGLE_CLIENT_SECRET: str = config("OAUTH_GOOGLE_CLIENT_SECRET", default="")
-    OAUTH_GITHUB_CLIENT_ID: str = config("OAUTH_GITHUB_CLIENT_ID", default="")
-    OAUTH_GITHUB_CLIENT_SECRET: str = config("OAUTH_GITHUB_CLIENT_SECRET", default="")
-    OAUTH_REDIRECT_BASE_URL: str = config("OAUTH_REDIRECT_BASE_URL", default="http://localhost:8000")
-
 
 class APISettings(BaseSettings):
     """API-related settings."""
@@ -274,15 +250,6 @@ class AppSettings(BaseSettings):
     CONTACT_EMAIL: str = config("CONTACT_EMAIL", default="support@example.com")
     LICENSE_NAME: str = config("LICENSE_NAME", default="All rights reserved.")
 
-
-class AdminSettings(BaseSettings):
-    """Admin user settings for initial setup."""
-
-    ADMIN_NAME: str = config("ADMIN_NAME", default="")
-    ADMIN_EMAIL: str = config("ADMIN_EMAIL", default="")
-    ADMIN_USERNAME: str = config("ADMIN_USERNAME", default="")
-    ADMIN_PASSWORD: str = config("ADMIN_PASSWORD", default="")
-    DEFAULT_TIER_NAME: str = config("DEFAULT_TIER_NAME", default="free")
 
 
 class SQLAdminSettings(BaseSettings):
@@ -413,10 +380,8 @@ class Settings(
     CORSSettings,
     CompressionSettings,
     APIDocSettings,
-    AuthSettings,
     APISettings,
     AppSettings,
-    AdminSettings,
     SQLAdminSettings,
     SecuritySettings,
     LoggingSettings,

@@ -20,8 +20,8 @@ class FieldPointSchema(BaseModel):
     """Single grid cell for GeoJSON rendering in MapLibre."""
     lat: float
     lon: float
-    value: float
-    uncertainty: float
+    value: float | None
+    uncertainty: float | None
 
 
 # ---------------------------------------------------------------------------

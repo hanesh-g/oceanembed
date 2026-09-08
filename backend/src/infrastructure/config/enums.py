@@ -14,15 +14,6 @@ class CacheBackend(StrEnum):
     MEMORY = "memory"
 
 
-class SessionBackend(StrEnum):
-    """Session storage backend types.
-
-    Supported backends for session storage (crudauth supports redis and memory only).
-    """
-
-    REDIS = "redis"
-    MEMORY = "memory"
-
 
 class TaskiqBrokerType(StrEnum):
     """Taskiq message broker types.

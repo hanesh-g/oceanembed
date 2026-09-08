@@ -1,7 +1,7 @@
-"""bp — root Typer application and entry point.
+"""oe — root Typer application and entry point for OceanEmbed.
 
 Mounts in-tree command sub-apps and discovers third-party plugins.
-The shipped console script (``[project.scripts] bp``) targets
+The shipped console script (``[project.scripts] oe``) targets
 ``app`` directly.
 """
 
@@ -10,25 +10,26 @@ from __future__ import annotations
 import typer
 
 from . import plugins as _plugins
-from .commands import deploy as _deploy_cmd
-from .commands import env as _env_cmd
+from .commands import zarr as _zarr_cmd
+from .commands import argo as _argo_cmd
+from .commands import pipeline as _pipeline_cmd
 
 app = typer.Typer(
-    name="bp",
-    help="FastAPI-boilerplate command-line tool.",
+    name="oe",
+    help="OceanEmbed command-line tool.",
     no_args_is_help=True,
     pretty_exceptions_show_locals=False,
 )
 
 # In-tree commands. Mounted before plugin discovery so a plugin can't
 # silently shadow a built-in by registering the same name.
-app.add_typer(_deploy_cmd.app, name="deploy", help="Generate deployment artifacts (Dockerfile, compose, nginx config).")
-app.add_typer(_env_cmd.app, name="env", help="Inspect and prepare the runtime environment.")
-
+app.add_typer(_zarr_cmd.app, name="zarr", help="Manage Zarr test datasets and pointer swaps.")
+app.add_typer(_argo_cmd.app, name="argo", help="Manage PostGIS and In-Situ Data.")
+app.add_typer(_pipeline_cmd.app, name="pipeline", help="Inference Pipeline (Worker Integration).")
 
 def _mount_command_plugins() -> None:
-    """Mount external Typer sub-apps registered under ``bp.commands``."""
-    builtin_names = {"deploy", "env", "feature"}
+    """Mount external Typer sub-apps registered under ``oe.commands``."""
+    builtin_names = {"zarr", "argo", "pipeline"}
     for name, sub_app in _plugins.discover_command_plugins().items():
         if name in builtin_names:
             typer.secho(
@@ -45,7 +46,7 @@ _mount_command_plugins()
 
 @app.callback()
 def _root() -> None:
-    """bp — FastAPI-boilerplate command-line tool."""
+    """oe — OceanEmbed command-line tool."""
     # Typer uses this docstring as the root help text. The body is
     # intentionally empty: the callback exists so options like
     # ``--install-completion`` work without arguments.

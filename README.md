@@ -42,6 +42,42 @@
 
 ---
 
+## How the Simulation Works (Mock vs Real)
+
+The platform supports two modes of operation to decouple frontend development from heavy AI/Data pipelines:
+
+1. **Mock Baseline Mode (Current Default)**:
+   - Driven by `fake_data.py`. 
+   - Instantly generates structurally perfect, 15-depth synthetic Zarr arrays without needing PyTorch, model weights, or satellite downloads.
+   - Allows the frontend team to build and test the UI, API connectivity, and payloads seamlessly. 
+   - *Auto-seeds on startup* if no data exists so you never get a 503 error on a fresh clone.
+
+2. **Real Year-Long Simulation Mode**:
+   - Driven by the worker pipeline (Implementation Pending Phase).
+   - Will download 52 weeks of real Copernicus/ERA5 data (SST, SSS, SLA, Winds) for 2025.
+   - Preprocesses and passes data through 5 PyTorch ensemble `.pt` models.
+   - Computes derived products (D26, TCHP, MLD) and writes production Zarr stores.
+   - *Requires Copernicus API keys and trained model weights.*
+
+---
+
+## Frontend Integration Guide
+
+If your team has already built the React frontend, here is exactly how to drop it into this monorepo so everything works together:
+
+1. **Move your code**: Delete the placeholder contents of the `frontend/` directory and copy your team's entire React project into the `frontend/` folder.
+2. **Environment Variables**: Ensure your frontend points its API calls to the FastAPI backend. Create or update your `.env` in the `frontend/` directory:
+   ```env
+   VITE_API_BASE_URL=http://localhost:8000/v1
+   ```
+3. **API Endpoints to Connect**:
+   - **Status Indicator**: Call `GET /v1/ocean/health` on load to get the current `week_label`.
+   - **Map Rendering**: Call `GET /v1/ocean/field_json?variable=temp&depth=0` (or `sal`, `d26`, etc.). Returns `[{lat, lon, value, uncertainty}]` which is highly optimized for MapLibre/Deck.gl.
+   - **Depth Profile Chart**: Call `GET /v1/ocean/profile?lat=X&lon=Y` when the user clicks the map. It instantly returns the 15-depth arrays for the temperature/salinity profile chart.
+4. **Docker Integration**: Your frontend will automatically be served at `http://localhost:3000` via the existing `docker-compose.yml`. Just ensure your `package.json` scripts (`npm run dev` and `npm run build`) match standard Vite/React conventions, and the existing `docker-compose.yml` will handle the rest.
+
+---
+
 ## Monorepo Layout
 
 ```

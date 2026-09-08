@@ -15,25 +15,16 @@ dependencies = [
     "aiosqlite>=0.21.0",
     "alembic>=1.16.4",
     "asyncpg>=0.30.0",
-    "crudauth[all]>=0.6.0,<0.7.0",
-    "faker>=37.1.0",
     "fastapi[standard]>=0.115.8",
-    "fastcrud>=0.21.0",
     "geoalchemy2>=0.15.0",
     "greenlet>=3.1.1",
     "httpx>=0.28.1",
-    "itsdangerous>=2.2.0",
     "jinja2>=3.1.6",
     "numpy>=1.26.0",
     "pydantic>=2.10.6",
     "pydantic-settings>=2.7.1",
     "redis>=6.1.0",
-    "sqladmin>=0.22.0",
     "sqlalchemy>=2.0.37",
-    "taskiq>=0.11.20",
-    "taskiq-redis>=1.1.2",
-    "taskiq-aio-pika>=0.4.3",
-    "user-agents>=2.2.0",
     "xarray>=2024.1.0",
     "zarr>=2.18.0",
 ]
@@ -91,18 +82,6 @@ module = "aiomcache"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "user_agents"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "sqladmin"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "sqladmin.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
 module = "wtforms.*"
 ignore_missing_imports = true
 
@@ -110,21 +89,6 @@ ignore_missing_imports = true
 module = "sqlalchemy.ext.asyncio"
 ignore_errors = true
 
-[[tool.mypy.overrides]]
-module = "taskiq"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "taskiq.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "taskiq_redis"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "taskiq_aio_pika"
-ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 128

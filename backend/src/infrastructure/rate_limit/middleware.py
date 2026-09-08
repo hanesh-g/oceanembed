@@ -1,18 +1,12 @@
 from collections.abc import Callable
-from typing import Any, cast
+from typing import cast
 
-from fastapi import Depends, Request
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
 from ...modules.common.utils.logger import get_logger
-from ...modules.rate_limit.crud import crud_rate_limits
-from ...modules.rate_limit.schemas import RateLimitSelect
-from ...modules.tier.crud import crud_tiers
-from ...modules.tier.schemas import TierSelect
 from ..config import get_settings
-from ..database import async_session
 from .exceptions import RateLimitException
 from .provider import increment_and_check
 from .utils import sanitize_path
@@ -24,29 +18,8 @@ DEFAULT_LIMIT = settings.DEFAULT_RATE_LIMIT_LIMIT
 DEFAULT_PERIOD = settings.DEFAULT_RATE_LIMIT_PERIOD
 
 
-async def get_optional_user(request: Request) -> dict[str, Any] | None:
-    """Get the current user from the request, or None if not authenticated.
-
-    This is a simplified version that assumes the user is stored in request.state.user.
-    In a real application, you would need to implement proper user extraction from
-    authentication tokens.
-    """
-    if hasattr(request.state, "user"):
-        return cast(dict[str, Any], request.state.user)
-    return None
-
-
-async def _check_rate_limit(request: Request, db: AsyncSession, user: dict[str, Any] | None = None) -> None:
-    """Internal implementation of check_rate_limit without FastAPI dependency injection.
-
-    Args:
-        request: The current request.
-        db: The database session.
-        user: The authenticated user, or None if not authenticated.
-
-    Raises:
-        RateLimitException: If the rate limit is exceeded.
-    """
+async def _check_rate_limit(request: Request) -> None:
+    """Internal implementation of check_rate_limit without FastAPI dependency injection."""
     if not settings.RATE_LIMITER_ENABLED:
         return
 
@@ -56,34 +29,8 @@ async def _check_rate_limit(request: Request, db: AsyncSession, user: dict[str, 
     original_path = request.url.path
     sanitized_path = sanitize_path(original_path)
 
-    if user:
-        user_id = user["id"]
-        tier = await crud_tiers.get(db=db, id=user["tier_id"], schema_to_select=TierSelect)
-
-        if tier:
-            rate_limit = await crud_rate_limits.get(
-                db=db, tier_id=tier["id"], path=sanitized_path, schema_to_select=RateLimitSelect
-            )
-
-            if not rate_limit:
-                rate_limit = await crud_rate_limits.get(
-                    db=db, tier_id=tier["id"], path=original_path, schema_to_select=RateLimitSelect
-                )
-
-            if rate_limit:
-                limit, period = rate_limit["limit"], rate_limit["period"]
-            else:
-                logger.warning(
-                    f"User {user_id} with tier '{tier['name']}' has no specific rate limit for path '{original_path}'. "
-                    "Applying default rate limit."
-                )
-                limit, period = DEFAULT_LIMIT, DEFAULT_PERIOD
-        else:
-            logger.warning(f"User {user_id} has no assigned tier. Applying default rate limit.")
-            limit, period = DEFAULT_LIMIT, DEFAULT_PERIOD
-    else:
-        user_id = request.client.host if request.client and hasattr(request.client, "host") else "unknown"
-        limit, period = DEFAULT_LIMIT, DEFAULT_PERIOD
+    user_id = request.client.host if request.client and hasattr(request.client, "host") else "unknown"
+    limit, period = DEFAULT_LIMIT, DEFAULT_PERIOD
 
     key = f"ratelimit:{user_id}:{sanitized_path}"
 
@@ -111,37 +58,23 @@ async def _check_rate_limit(request: Request, db: AsyncSession, user: dict[str, 
             raise RateLimitException("Error checking rate limit. Access denied as a precaution.")
 
 
-async def check_rate_limit(
-    request: Request,
-    db: AsyncSession = Depends(async_session),
-    user: dict[str, Any] | None = Depends(get_optional_user),
-) -> None:
+async def check_rate_limit(request: Request) -> None:
     """Check if the current request exceeds rate limits.
 
     Args:
         request: The current request.
-        db: The database session.
-        user: The authenticated user, or None if not authenticated.
 
     Raises:
         RateLimitException: If the rate limit is exceeded.
     """
-    await _check_rate_limit(request, db, user)
+    await _check_rate_limit(request)
 
 
 class RateLimiterMiddleware(BaseHTTPMiddleware):
     """Middleware for applying rate limits to all requests."""
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        """Process a request through the middleware.
-
-        Args:
-            request: The incoming request.
-            call_next: The next middleware or handler in the chain.
-
-        Returns:
-            The response from the next middleware or handler.
-        """
+        """Process a request through the middleware."""
         response = await call_next(request)
 
         if hasattr(request.state, "rate_limit_headers"):
