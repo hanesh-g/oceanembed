@@ -2,13 +2,11 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from starlette.middleware.sessions import SessionMiddleware
 
 from ..infrastructure.app_factory import create_application, lifespan_factory
 from ..infrastructure.config.settings import get_settings
 from ..infrastructure.security import validate_production_security
 from ..interfaces.api import router
-from .admin.initialize import create_admin_interface
 
 settings = get_settings()
 
@@ -23,6 +21,16 @@ async def lifespan_with_security(app: FastAPI) -> AsyncGenerator[None, None]:
     # Endpoints re-check the symlink periodically via the resolver's TTL —
     # they never cache the resolved path themselves.
     from ..infrastructure.zarr.resolver import ZarrStoreResolver
+    import os
+    import logging
+
+    # Auto-seed mock data if it doesn't exist
+    latest_link = os.path.join(settings.PUBLISHED_ZARR_ROOT, "latest")
+    if not os.path.exists(latest_link) and not os.path.islink(latest_link):
+        logging.getLogger(__name__).warning("No mock data found. Auto-seeding fake Zarr stores...")
+        from ..infrastructure.zarr.fake_data import create_fake_published_layout
+        create_fake_published_layout(settings.PUBLISHED_ZARR_ROOT)
+
     app.state.zarr_resolver = ZarrStoreResolver(
         root=settings.PUBLISHED_ZARR_ROOT,
         recheck_seconds=settings.ZARR_POINTER_RECHECK_SECONDS,
@@ -90,8 +98,6 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Shape", "X-Variable", "X-Model-Version", "X-Week"],
 )
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
-create_admin_interface(app)
 
 
 @app.get("/health", tags=["System"])

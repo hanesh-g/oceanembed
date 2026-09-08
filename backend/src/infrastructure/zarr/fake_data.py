@@ -30,7 +30,10 @@ import xarray as xr
 # Coarse synthetic grid — real domain is 0.25° but 5° is enough for tests.
 LATS = np.arange(5.0, 31.0, 5.0, dtype="float32")    # 5°N–30°N
 LONS = np.arange(45.0, 106.0, 5.0, dtype="float32")   # 45°E–105°E
-DEPTHS = np.array([0.0, 50.0, 200.0], dtype="float32")  # 3 of 15 real levels
+# All 15 standard depth levels to avoid "staircase" charts in the UI
+DEPTHS = np.array([
+    0, 5, 10, 20, 30, 50, 75, 100, 125, 150, 200, 300, 500, 700, 1000
+], dtype="float32")
 VARIABLES = ["temp", "sal", "d26", "tchp", "mld"]
 
 

@@ -171,5 +171,5 @@ class ZarrStoreResolver:
         key = str(week_path.resolve())
         if key not in self._store_cache:
             logger.info("ZarrStoreResolver: opening store at %s", key)
-            self._store_cache[key] = xr.open_zarr(key)  # type: ignore[arg-type]
+            self._store_cache[key] = xr.open_zarr(key)
         return self._store_cache[key]

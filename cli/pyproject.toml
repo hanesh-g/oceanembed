@@ -3,10 +3,10 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fastapi-boilerplate-cli"
+name = "oceanembed-cli"
 version = "0.1.0"
-description = "bp — developer/operator CLI for the FastAPI boilerplate. Hosts in-tree commands and discovers third-party plugins."
-authors = [{ name = "Benav Labs", email = "contact@benav.io" }]
+description = "oe — developer/operator CLI for OceanEmbed. Manages Zarr, PostGIS, and inference pipelines."
+authors = [{ name = "OceanEmbed Team", email = "contact@example.com" }]
 license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.11"
@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-bp = "cli.app:app"
+oe = "cli.app:app"
 
 [tool.uv.sources]
 fastapi-boilerplate = { workspace = true }

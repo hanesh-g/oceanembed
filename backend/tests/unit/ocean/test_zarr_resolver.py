@@ -11,6 +11,7 @@ of the master plan.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from pathlib import Path
 
@@ -52,7 +53,6 @@ class TestZarrStoreResolver:
 
     def test_resolves_latest_pointer(self, resolver: ZarrStoreResolver, fake_root: Path) -> None:
         """get_store(None) should open the dataset pointed to by 'latest'."""
-        import asyncio
         ds = asyncio.get_event_loop().run_until_complete(resolver.get_store())
         assert isinstance(ds, xr.Dataset)
         # Default latest → week=2025-W01
@@ -60,14 +60,11 @@ class TestZarrStoreResolver:
 
     def test_explicit_week_bypasses_symlink(self, resolver: ZarrStoreResolver, fake_root: Path) -> None:
         """get_store(week='2025-W02') opens W02 regardless of where 'latest' points."""
-        import asyncio
         ds = asyncio.get_event_loop().run_until_complete(resolver.get_store(week="2025-W02"))
         assert ds.attrs.get("week_label") == "2025-W02"
 
     def test_caches_opened_store_per_week(self, resolver: ZarrStoreResolver, fake_root: Path) -> None:
         """Calling get_store twice for the same week returns the identical object."""
-        import asyncio
-
         async def _run() -> tuple[xr.Dataset, xr.Dataset]:
             a = await resolver.get_store(week="2025-W01")
             b = await resolver.get_store(week="2025-W01")
@@ -88,8 +85,6 @@ class TestZarrStoreResolver:
         A resolver that cached the opened store at process start and never
         re-checked the symlink would fail this test by returning W01 data.
         """
-        import asyncio
-
         async def _get_latest() -> xr.Dataset:
             return await resolver.get_store()
 
@@ -110,13 +105,11 @@ class TestZarrStoreResolver:
 
     def test_missing_week_raises_file_not_found(self, resolver: ZarrStoreResolver) -> None:
         """Requesting a non-existent explicit week should raise FileNotFoundError."""
-        import asyncio
         with pytest.raises(FileNotFoundError, match="week=9999-W99"):
             asyncio.get_event_loop().run_until_complete(resolver.get_store(week="9999-W99"))
 
     def test_missing_latest_symlink_raises_runtime_error(self, tmp_path: Path) -> None:
         """A resolver whose root has no 'latest' symlink should raise RuntimeError."""
-        import asyncio
         root = tmp_path / "empty_published"
         root.mkdir()
         r = ZarrStoreResolver(root=str(root), recheck_seconds=0)

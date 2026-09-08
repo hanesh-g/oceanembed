@@ -77,3 +77,40 @@
 - [x] Add `GET /v1/ocean/argo_floats` — PostGIS distinct floats
 - [x] Add `GET /v1/ocean/profile` — 15-depth + nearest ARGO
 - [x] Add `GET /v1/ocean/health` — current live week status
+
+## Phase 7 — Critical Fixes, Hardening & Multi-Model Scalability
+*Detailed breakdown and tracking available in [task_list.md](file:///d:/Projects/oceanembed-sih/oceanembed/implementation_docs/task_list.md)*
+
+### 1. Foundation: Variable Registry & Multi-Model Architecture
+- [x] Create `backend/src/modules/ocean/constants.py` — canonical variable catalogue (`OCEAN_VARIABLES`), physical bounds, `STANDARD_DEPTHS`, and `ModelConfig` registry (`MODEL_REGISTRY`)
+- [ ] Update `worker/quality_gate.py` to use dynamic bounds and variable lists from `constants.py`
+- [ ] Update `backend/src/infrastructure/zarr/fake_data.py` to generate canonical variables and uncertainty companions
+- [x] Update `backend/src/modules/ocean/routes/profile.py` to use standard depths and variables from registry
+- [ ] Update `worker/run_weekly_inference.py` to read `ModelConfig` and write registered variables
+
+### 2. Critical Bug Fixes & Route Reliability
+- [x] Add error handling across routes (`field.py`, `profile.py`) for `KeyError`, `ValueError`, `RuntimeError`
+- [x] Offload blocking Zarr array and disk I/O in route handlers to worker threads via `asyncio.to_thread()`
+- [x] Graceful 404 response in `saliency.py` when saliency variable/mask is absent instead of 500 error
+- [x] Mark `sampling.py` and `benchmark.py` draft/skeleton endpoints clearly in OpenAPI schema docs
+- [ ] Fix Pydantic forward reference in `backend/src/modules/ocean/schemas/__init__.py` (`RunEntrySchema` before `WeeksResponseSchema`)
+- [ ] Add `LIMIT` and pagination to `SELECT DISTINCT ON (platform_id)` query in `backend/src/modules/ocean/routes/argo.py`
+- [ ] Add defensive `hasattr` state check in `get_zarr_resolver` in `backend/src/infrastructure/dependencies.py`
+
+### 3. Inference Worker & Pipeline Hardening
+- [ ] Create `worker/requirements.txt` with pinned dependencies for containerized execution
+- [ ] Fix ISO calendar week boundary parsing (`%G-W%V-%u`) in `worker/run_weekly_inference.py`
+- [ ] Clean up `worker/Dockerfile` (remove debug comments, fix permissions and entrypoint)
+- [ ] Persist run audit trail and gate metrics to PostgreSQL `model_runs` table upon execution
+
+### 4. Database & Migration Fixes
+- [ ] Fix Alembic migration `down_revision`, add CHECK constraint on `gate_status`, align primary key names
+
+### 5. Testing & CI Validation
+- [ ] Rewrite `backend/tests/integration/ocean/test_endpoints.py` with schema validations and mock resolver
+- [ ] Update `backend/tests/unit/ocean/test_quality_gate.py` with `OCEAN_VARIABLES` bounds
+
+### 6. Scalability & Performance Hardening
+- [ ] Add LRU cache eviction to `ZarrStoreResolver` to prevent unbounded memory growth
+- [x] Optimize profile extraction in `profile.py` from sequential depth loop to single vectorized `.sel(lat, lon)` slice
+
