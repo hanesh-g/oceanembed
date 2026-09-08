@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import asyncio
 import math
+from typing import Any
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -102,7 +103,7 @@ async def get_field_json(
     week: str | None = None,
     stride: int = Query(default=4, ge=2, le=20, description="Spatial stride factor for downsampling"),
     resolver: ZarrStoreResolver = Depends(get_zarr_resolver),
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Return a downsampled JSON grid for MapLibre GeoJSON rendering.
 
     Downsamples the 0.25° grid by ``stride`` (default 4 → ~1.0° → ~1,500 points).

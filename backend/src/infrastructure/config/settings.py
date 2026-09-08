@@ -6,7 +6,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 from starlette.config import Config
 
-from .enums import CacheBackend, LogFormat, LogLevel, SessionBackend, TaskiqBrokerType
+from .enums import CacheBackend, LogFormat, LogLevel, TaskiqBrokerType
 
 logger = logging.getLogger(__name__)
 
@@ -256,6 +256,8 @@ class SQLAdminSettings(BaseSettings):
     """SQLAdmin interface settings."""
 
     ADMIN_ENABLED: bool = config("ADMIN_ENABLED", default=True, cast=bool)
+    ADMIN_USERNAME: str | None = config("ADMIN_USERNAME", default=None)
+    ADMIN_PASSWORD: str | None = config("ADMIN_PASSWORD", default=None)
 
 
 class SecuritySettings(BaseSettings):
@@ -264,6 +266,15 @@ class SecuritySettings(BaseSettings):
     PRODUCTION_SECURITY_VALIDATION_ENABLED: bool = config("PRODUCTION_SECURITY_VALIDATION_ENABLED", default=True, cast=bool)
     PRODUCTION_SECURITY_STRICT_MODE: bool = config("PRODUCTION_SECURITY_STRICT_MODE", default=False, cast=bool)
     SECURITY_HEADERS_ENABLED: bool = config("SECURITY_HEADERS_ENABLED", default=True, cast=bool)
+
+
+class SessionSettings(BaseSettings):
+    """Session configuration settings."""
+    SECRET_KEY: str = config("SECRET_KEY", default="insecure-secret-key-change-this")
+    SESSION_BACKEND: str = config("SESSION_BACKEND", default="cookie")
+    SESSION_SECURE_COOKIES: bool = config("SESSION_SECURE_COOKIES", default=False, cast=bool)
+    SESSION_TIMEOUT_MINUTES: int = config("SESSION_TIMEOUT_MINUTES", default=60, cast=int)
+    CSRF_ENABLED: bool = config("CSRF_ENABLED", default=False, cast=bool)
 
 
 class LoggingSettings(BaseSettings):
@@ -384,6 +395,7 @@ class Settings(
     AppSettings,
     SQLAdminSettings,
     SecuritySettings,
+    SessionSettings,
     LoggingSettings,
     TaskiqSettings,
     OceanEmbedSettings,
