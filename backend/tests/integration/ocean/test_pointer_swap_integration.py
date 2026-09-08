@@ -1,12 +1,9 @@
 import os
-import time
 import pytest
 from pathlib import Path
-from httpx import AsyncClient
-from fastapi import FastAPI
 
 @pytest.mark.asyncio
-async def test_pointer_swap_integration(client: AsyncClient, app: FastAPI, tmp_path: Path):
+async def test_pointer_swap_integration(tmp_path: Path):
     """
     Test that the backend gracefully handles an atomic pointer swap simulating
     the worker publishing a new week of data.

@@ -1,7 +1,5 @@
-import pytest
 import numpy as np
 import sys
-import os
 from pathlib import Path
 
 # Add worker dir to path so we can import quality_gate

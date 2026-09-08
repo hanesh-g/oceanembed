@@ -137,7 +137,6 @@ async def client(test_db):
 import json
 import numpy as np
 import xarray as xr
-import pytest
 
 @pytest.fixture
 def mock_scaler_json(tmp_path):
