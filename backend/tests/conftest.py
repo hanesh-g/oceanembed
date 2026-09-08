@@ -143,8 +143,8 @@ import pytest
 def mock_scaler_json(tmp_path):
     """Provides a temporary scaler.json for the QualityGate."""
     scaler_data = {
-        "means": {"thetao": 15.0, "so": 35.0},
-        "stds": {"thetao": 2.0, "so": 0.5}
+        "means": {"temp": 15.0, "sal": 35.0},
+        "stds": {"temp": 2.0, "sal": 0.5}
     }
     scaler_file = tmp_path / "scaler.json"
     scaler_file.write_text(json.dumps(scaler_data))
@@ -167,7 +167,7 @@ def dummy_ocean_dataset():
     
     shape = (len(depth), len(lat), len(lon))
     # Fill with values within bounds and perfectly scaled
-    ds["thetao"] = (("depth", "lat", "lon"), np.full(shape, 15.0, dtype=np.float32))
-    ds["so"] = (("depth", "lat", "lon"), np.full(shape, 35.0, dtype=np.float32))
+    ds["temp"] = (("depth", "lat", "lon"), np.full(shape, 15.0, dtype=np.float32))
+    ds["sal"] = (("depth", "lat", "lon"), np.full(shape, 35.0, dtype=np.float32))
     
     return ds

@@ -14,11 +14,11 @@ async def test_health_endpoint(client: AsyncClient, app: FastAPI):
 @pytest.mark.asyncio
 async def test_field_json_endpoint(client: AsyncClient, app: FastAPI):
     """Test the /v1/ocean/field_json endpoint returns vectorized data."""
-    response = await client.get("/v1/ocean/field_json?variable=thetao&depth=0")
+    response = await client.get("/v1/ocean/field_json?variable=temp&depth=0")
     assert response.status_code == 200
     data = response.json()
     assert "variable" in data
-    assert data["variable"] == "thetao"
+    assert data["variable"] == "temp"
     assert "data" in data
 
 @pytest.mark.asyncio
